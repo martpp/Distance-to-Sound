@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Ultrasonic.h>
 // pin definitions for 3 HC-RS04
+
+#define LED_BUILTIN 1
 #define trigPin1 2
 #define echoPin1 3
 #define trigPin2 4
@@ -17,34 +19,31 @@ Ultrasonic ultrasonic2(trigPin3, echoPin3);
 unsigned int duration_ms;
 unsigned int last_time_ms;
 
-class MovingAverageFilter
-{
+class MovingAverageFilter {
 public:
-    MovingAverageFilter(int window_size) 
-        : windowsize(window_size), index(0), sum(0.0f) {
-        inputhistory = new float[windowsize];
-        for (int i = 0; i < windowsize; i++) {
-            inputhistory[i] = 0.0f;
-        }
+  MovingAverageFilter(int window_size)
+      : windowsize(window_size), index(0), sum(0.0f) {
+    inputhistory = new float[windowsize];
+    for (int i = 0; i < windowsize; i++) {
+      inputhistory[i] = 0.0f;
     }
+  }
 
-    ~MovingAverageFilter() {
-        delete[] inputhistory;
-    }
+  ~MovingAverageFilter() { delete[] inputhistory; }
 
-    float update(float input) {
-        sum -= inputhistory[index];  // remove the oldest value from the sum
-        inputhistory[index] = input; // insert the new value
-        sum += input;                // add the new value to the sum
-        index = (index + 1) % windowsize; // move to the next position
-        return sum / windowsize;
-    }
+  float update(float input) {
+    sum -= inputhistory[index];       // remove the oldest value from the sum
+    inputhistory[index] = input;      // insert the new value
+    sum += input;                     // add the new value to the sum
+    index = (index + 1) % windowsize; // move to the next position
+    return sum / windowsize;
+  }
 
 private:
-    float* inputhistory;
-    int windowsize;
-    int index;
-    float sum;
+  float *inputhistory;
+  int windowsize;
+  int index;
+  float sum;
 };
 
 int windowsize = 4;
@@ -54,16 +53,14 @@ MovingAverageFilter filter_2(windowsize);
 
 float fdist0, fdist1, fdist2;
 
-void setup()
-{
+void setup() {
   Serial.begin(9600);
   pinMode(ampPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 }
 
-void loop()
-{
+void loop() {
   unsigned int current_time_ms = millis();
   fdist0 = filter_0.update(ultrasonic0.read());
   fdist1 = filter_1.update(ultrasonic1.read());
@@ -86,14 +83,13 @@ void loop()
   // map distance to a duration value between 200 and 2000ms
   unsigned int duration1 = map(distance, 10, 100, 50, 1000);
 
-
-  if(current_time_ms - last_time_ms > duration1 && distance < 100 && distance > 10)
-  {
+  if (current_time_ms - last_time_ms > duration1 && distance < 100 &&
+      distance > 10) {
     last_time_ms = current_time_ms;
     // play a tone with the duration
     tone(ampPin, 1000, duration1 / 2);
     digitalWrite(LED_BUILTIN, HIGH);
-  }else{
+  } else {
     digitalWrite(LED_BUILTIN, LOW);
   }
   delay(10);
