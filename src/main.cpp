@@ -1,20 +1,66 @@
 #include <Arduino.h>
 #include <Ultrasonic.h>
-// pin definitions for 3 HC-RS04
+
+// Pin mappings for the ATmega32 with MightyCore
+// PA0 = 24
+// PA1 = 25
+// PA2 = 26
+// PA3 = 27
+// PA4 = 28
+// PA5 = 29
+// PA6 = 30
+// PA7 = 31
+// PB0 = 0
+// PB1 = 1 // LED_BUILTIN
+// PB2 = 2
+// PB3 = 3 // D9
+// PB4 = 4
+// PB5 = 5
+// PB6 = 6
+// PB7 = 7
+// PC0 = 16
+// PC1 = 17
+// PC2 = 18
+// PC3 = 19
+// PC4 = 20
+// PC5 = 21
+// PC6 = 22
+// PC7 = 23
+// PD0 = 8 // D0
+// PD1 = 9 // D1
+// PD2 = 10 // D2
+// PD3 = 11 // D3
+// PD4 = 12 // D4
+// PD5 = 13 // D5
+// PD6 = 14 // D6
+// PD7 = 15 // D7
+// PE0 = 32
+// PE1 = 33
+// PE2 = 34
+// PE3 = 35
+// PE4 = 36
+// PE5 = 37
+// PE6 = 38
 
 #define LED_BUILTIN 1
-#define trigPin1 2
-#define echoPin1 3
-#define trigPin2 4
-#define echoPin2 5
-#define trigPin3 6
-#define echoPin3 7
+
+// pin definitions for 3 HC-RS04
+#define trigPin0 11 // D3
+#define echoPin0 10 // D2
+#define trigPin1 13 // D5
+#define echoPin1 12 // D4
+#define trigPin2 15 // D7
+#define echoPin2 14 // D6
+
 // define pin for lm386-amp
-#define ampPin 9
-// define the ultrasonic sensor object
-Ultrasonic ultrasonic0(trigPin1, echoPin1);
-Ultrasonic ultrasonic1(trigPin2, echoPin2);
-Ultrasonic ultrasonic2(trigPin3, echoPin3);
+#define ampPin 24
+
+// define pin for on/off switch
+#define switchPin 3
+
+Ultrasonic ultrasonic0(trigPin0, echoPin0);
+Ultrasonic ultrasonic1(trigPin1, echoPin1);
+Ultrasonic ultrasonic2(trigPin2, echoPin2);
 
 unsigned int duration_ms;
 unsigned int last_time_ms;
@@ -58,6 +104,8 @@ void setup() {
   pinMode(ampPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+
+  pinMode(switchPin, INPUT_PULLUP);
 }
 
 void loop() {
@@ -83,14 +131,18 @@ void loop() {
   // map distance to a duration value between 200 and 2000ms
   unsigned int duration1 = map(distance, 10, 100, 50, 1000);
 
-  if (current_time_ms - last_time_ms > duration1 && distance < 100 &&
+  if (current_time_ms - last_time_ms > duration1 && distance < 75 &&
       distance > 10) {
     last_time_ms = current_time_ms;
     // play a tone with the duration
-    tone(ampPin, 1000, duration1 / 2);
+    // Change the amplitude of the tone to 1/2 of the max volume
+
+    if(digitalRead(switchPin) == LOW) {
+      tone(ampPin, 500, duration1 / 2);
+    }
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
     digitalWrite(LED_BUILTIN, LOW);
   }
-  delay(10);
+  delay(100);
 }
