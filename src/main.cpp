@@ -13,7 +13,7 @@
 // PB0 = 0
 // PB1 = 1 // LED_BUILTIN
 // PB2 = 2
-// PB3 = 3
+// PB3 = 3 // D9
 // PB4 = 4
 // PB5 = 5
 // PB6 = 6
@@ -54,6 +54,9 @@
 
 // define pin for lm386-amp
 #define ampPin 24
+
+// define pin for on/off switch
+#define switchPin 3
 
 Ultrasonic ultrasonic0(trigPin0, echoPin0);
 Ultrasonic ultrasonic1(trigPin1, echoPin1);
@@ -101,6 +104,8 @@ void setup() {
   pinMode(ampPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+
+  pinMode(switchPin, INPUT_PULLUP);
 }
 
 void loop() {
@@ -132,7 +137,9 @@ void loop() {
     // play a tone with the duration
     // Change the amplitude of the tone to 1/2 of the max volume
 
-    tone(ampPin, 500, duration1 / 2);
+    if(digitalRead(switchPin) == LOW) {
+      tone(ampPin, 500, duration1 / 2);
+    }
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
     digitalWrite(LED_BUILTIN, LOW);
